@@ -11,36 +11,28 @@ async function loadPosts() {
     const mdFiles = files.filter(f => f.name.endsWith('.md'));
 
     let html = '';
-
     for (const file of mdFiles) {
       const filename = file.name;
       const cleanTitle = filename.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace('.md', '').replace(/-/g, ' ');
 
       let imageUrl = '';
-
       try {
         const rawRes = await fetch(`https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`);
         const markdown = await rawRes.text();
         const imgMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/i);
-        if (imgMatch && imgMatch[1]) {
-          imageUrl = imgMatch[1];
-        }
+        if (imgMatch && imgMatch[1]) imageUrl = imgMatch[1];
       } catch(e) {}
 
-      // Pakai gambar default yang simpel (tanpa external service)
       const finalImg = imageUrl || 'https://picsum.photos/id/1015/300/250';
 
       html += `
         <div class="card" onclick="loadPost('${filename}')">
-          <img src="${finalImg}" 
-               alt="${cleanTitle}"
-               onerror="this.style.display='none';">
+          <img src="${finalImg}" alt="${cleanTitle}" onerror="this.style.display='none';">
           <div class="info">
             <div class="title">${cleanTitle}</div>
           </div>
         </div>`;
     }
-
     container.innerHTML = html || '<p>Belum ada postingan.</p>';
   } catch(e) {
     container.innerHTML = '<p>Gagal memuat daftar postingan.</p>';
@@ -62,7 +54,18 @@ async function loadPost(filename) {
     const rawUrl = `https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`;
     const res = await fetch(rawUrl);
     let text = await res.text();
-    document.getElementById('content').innerHTML = marked.parse(text);
+
+    // Jika postingan mengandung base64 (seperti milikmu)
+    if (text.includes('window.mewmew') || text.includes('getRealContent')) {
+      // Render sebagai HTML langsung agar script jalan
+      const div = document.createElement('div');
+      div.innerHTML = text;
+      document.getElementById('content').innerHTML = '';
+      document.getElementById('content').appendChild(div);
+    } else {
+      // Render normal markdown
+      document.getElementById('content').innerHTML = marked.parse(text);
+    }
   } catch(e) {
     document.getElementById('content').innerHTML = '<p>Gagal memuat postingan.</p>';
   }
