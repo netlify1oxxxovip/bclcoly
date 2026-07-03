@@ -21,21 +21,20 @@ async function loadPosts() {
       try {
         const rawRes = await fetch(`https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`);
         const markdown = await rawRes.text();
-
-        // Ambil gambar pertama
         const imgMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/i);
         if (imgMatch && imgMatch[1]) {
           imageUrl = imgMatch[1];
         }
       } catch(e) {}
 
-      const finalImg = imageUrl || 'https://via.placeholder.com/300x250/ff69b4/ffffff?text=Poster';
+      // Pakai gambar default yang simpel (tanpa external service)
+      const finalImg = imageUrl || 'https://picsum.photos/id/1015/300/250';
 
       html += `
         <div class="card" onclick="loadPost('${filename}')">
           <img src="${finalImg}" 
                alt="${cleanTitle}"
-               onerror="this.src='https://via.placeholder.com/300x250/ff69b4/ffffff?text=No+Image'; this.onerror=null;">
+               onerror="this.style.display='none';">
           <div class="info">
             <div class="title">${cleanTitle}</div>
           </div>
@@ -63,16 +62,7 @@ async function loadPost(filename) {
     const rawUrl = `https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`;
     const res = await fetch(rawUrl);
     let text = await res.text();
-
-    // Perbaikan khusus untuk postingan base64 kamu
-    if (text.includes('window.mewmew') || text.includes('getRealContent')) {
-      // Render langsung sebagai HTML (karena sudah ada script di dalamnya)
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = marked.parse(text); // render markdown dulu
-      document.getElementById('content').innerHTML = tempDiv.innerHTML;
-    } else {
-      document.getElementById('content').innerHTML = marked.parse(text);
-    }
+    document.getElementById('content').innerHTML = marked.parse(text);
   } catch(e) {
     document.getElementById('content').innerHTML = '<p>Gagal memuat postingan.</p>';
   }
@@ -83,5 +73,4 @@ function backToList() {
   document.getElementById('post-content').style.display = 'none';
 }
 
-// Jalankan saat halaman dimuat
 loadPosts();
