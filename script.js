@@ -16,26 +16,29 @@ async function loadPosts() {
       const filename = file.name;
       const cleanTitle = filename.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace('.md', '').replace(/-/g, ' ');
 
-      // Ambil isi file md untuk mencari gambar pertama
-      let imageUrl = 'https://via.placeholder.com/300x250/ff4f9a/fff?text=No+Image';
-      
+      let imageUrl = '';
+
       try {
         const rawRes = await fetch(`https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`);
         const markdown = await rawRes.text();
 
         // Cari gambar pertama di markdown
-        const imgMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+        const imgMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/i);
         if (imgMatch && imgMatch[1]) {
           imageUrl = imgMatch[1];
         }
-      } catch(e) {
-        console.log("Gagal ambil gambar untuk:", filename);
-      }
+      } catch(e) {}
+
+      // Fallback image
+      const finalImg = imageUrl ? 
+        `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&w=300&h=250&fit=cover` : 
+        'https://picsum.photos/300/250?random=1';
 
       html += `
         <div class="card" onclick="loadPost('${filename}')">
-          <img src="${imageUrl}" alt="${cleanTitle}" 
-               onerror="this.src='https://via.placeholder.com/300x250/ff4f9a/fff?text=No+Image'">
+          <img src="${finalImg}" 
+               alt="${cleanTitle}"
+               onerror="this.src='https://via.placeholder.com/300x250/cccccc/666?text=No+Image'">
           <div class="info">
             <div class="title">${cleanTitle}</div>
           </div>
@@ -44,7 +47,8 @@ async function loadPosts() {
 
     container.innerHTML = html || '<p>Belum ada postingan.</p>';
   } catch(e) {
-    container.innerHTML = '<p>Gagal memuat daftar. Cek koneksi atau repo.</p>';
+    container.innerHTML = '<p>Gagal memuat daftar postingan.</p>';
+    console.error(e);
   }
 }
 
@@ -54,8 +58,8 @@ async function loadPost(filename) {
   contentArea.style.display = 'block';
 
   document.getElementById('content').innerHTML = `
-    <div style="text-align:center;padding:60px 20px;">
-      <div style="width:50px;height:50px;border:4px solid #ddd;border-top:4px solid #ff4f9a;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;"></div>
+    <div style="text-align:center; padding:80px 20px;">
+      <div class="spinner"></div>
       <p>Memuat konten...</p>
     </div>`;
 
