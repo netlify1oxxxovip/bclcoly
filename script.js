@@ -55,18 +55,26 @@ async function loadPost(filename) {
     const res = await fetch(rawUrl);
     let text = await res.text();
 
-    const div = document.createElement('div');
-    div.innerHTML = text;
+    // Render HTML + jalankan script di dalamnya
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+    
     document.getElementById('content').innerHTML = '';
-    document.getElementById('content').appendChild(div);
+    document.getElementById('content').appendChild(tempDiv);
 
-    // Eksekusi script base64
-    const scripts = div.querySelectorAll('script');
-    scripts.forEach(oldScript => {
+    // Eksekusi semua <script> yang ada
+    const scripts = tempDiv.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+      const oldScript = scripts[i];
       const newScript = document.createElement('script');
-      newScript.textContent = oldScript.textContent;
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
       document.getElementById('content').appendChild(newScript);
-    });
+    }
+
   } catch(e) {
     document.getElementById('content').innerHTML = '<p>Gagal memuat postingan.</p>';
   }
