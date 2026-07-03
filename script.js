@@ -1,63 +1,52 @@
 const USERNAME = 'netlify1oxxxovip';
 const REPO_NAME = 'bclcoly';
 
-let isUnlocked = false;
-
 async function loadPosts() {
-  const listContainer = document.getElementById('posts-list');
-  listContainer.innerHTML = '<p>Memuat postingan...</p>';
+  const container = document.getElementById('posts-list');
+  container.innerHTML = '<p>Memuat daftar film...</p>';
 
   try {
-    const response = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/posts`);
-    if (!response.ok) throw new Error();
-    
-    const files = await response.json();
-    const mdFiles = files.filter(file => file.name.endsWith('.md'));
+    const res = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/posts`);
+    const files = await res.json();
+    const mdFiles = files.filter(f => f.name.endsWith('.md'));
 
     let html = '';
-    
     for (const file of mdFiles) {
       const title = file.name.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace('.md', '').replace(/-/g, ' ');
-      const date = file.name.split('-').slice(0,3).join('-');
-      
       html += `
         <div class="card" onclick="loadPost('${file.name}')">
-          <img src="https://via.placeholder.com/300x250?text=${encodeURIComponent(title)}" alt="${title}">
+          <img src="https://via.placeholder.com/300x250/ff4f9a/fff?text=${encodeURIComponent(title.substring(0,15))}" alt="${title}">
           <div class="info">
             <div class="title">${title}</div>
-            <small>${date}</small>
           </div>
         </div>`;
     }
-
-    listContainer.innerHTML = html || '<p>Belum ada postingan.</p>';
-  } catch (e) {
-    listContainer.innerHTML = '<p>Gagal memuat. Cek folder posts.</p>';
+    container.innerHTML = html || '<p>Belum ada postingan.</p>';
+  } catch(e) {
+    container.innerHTML = '<p>Gagal memuat daftar.</p>';
   }
 }
 
 async function loadPost(filename) {
-  if (!isUnlocked) {
-    const pass = prompt("🔒 Masukkan Password:");
-    if (pass !== "2026") {
-      alert("❌ Password salah!");
-      return;
-    }
-    isUnlocked = true;
-  }
-
   document.getElementById('posts-list').style.display = 'none';
-  const contentDiv = document.getElementById('post-content');
-  contentDiv.style.display = 'block';
+  const contentArea = document.getElementById('post-content');
+  contentArea.style.display = 'block';
+  document.getElementById('content').innerHTML = '<p>Memuat konten...</p>';
 
-  const rawUrl = `https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`;
-  
   try {
+    const rawUrl = `https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`;
     const res = await fetch(rawUrl);
-    const markdown = await res.text();
-    document.getElementById('content').innerHTML = marked.parse(markdown);
-  } catch (e) {
-    document.getElementById('content').innerHTML = '<p>Gagal memuat postingan.</p>';
+    let markdown = await res.text();
+
+    // Jika postingan mengandung base64 (seperti pola kamu)
+    if (markdown.includes('window.mewmew') || markdown.includes('atob')) {
+      document.getElementById('content').innerHTML = marked.parse(markdown);
+    } else {
+      // Render normal markdown
+      document.getElementById('content').innerHTML = marked.parse(markdown);
+    }
+  } catch(e) {
+    document.getElementById('content').innerHTML = '<p>Gagal memuat konten.</p>';
   }
 }
 
