@@ -22,23 +22,20 @@ async function loadPosts() {
         const rawRes = await fetch(`https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`);
         const markdown = await rawRes.text();
 
-        // Cari gambar pertama di markdown
         const imgMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/i);
         if (imgMatch && imgMatch[1]) {
           imageUrl = imgMatch[1];
         }
       } catch(e) {}
 
-      // Fallback image
-      const finalImg = imageUrl ? 
-        `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&w=300&h=250&fit=cover` : 
-        'https://picsum.photos/300/250?random=1';
+      // Fallback gambar yang simpel
+      const finalImg = imageUrl || 'https://via.placeholder.com/300x250/ff69b4/ffffff?text=Poster';
 
       html += `
         <div class="card" onclick="loadPost('${filename}')">
           <img src="${finalImg}" 
                alt="${cleanTitle}"
-               onerror="this.src='https://via.placeholder.com/300x250/cccccc/666?text=No+Image'">
+               onerror="this.src='https://via.placeholder.com/300x250/ff69b4/ffffff?text=No+Image'; this.onerror=null;">
           <div class="info">
             <div class="title">${cleanTitle}</div>
           </div>
@@ -48,7 +45,6 @@ async function loadPosts() {
     container.innerHTML = html || '<p>Belum ada postingan.</p>';
   } catch(e) {
     container.innerHTML = '<p>Gagal memuat daftar postingan.</p>';
-    console.error(e);
   }
 }
 
@@ -58,7 +54,7 @@ async function loadPost(filename) {
   contentArea.style.display = 'block';
 
   document.getElementById('content').innerHTML = `
-    <div style="text-align:center; padding:80px 20px;">
+    <div style="text-align:center;padding:80px 20px;">
       <div class="spinner"></div>
       <p>Memuat konten...</p>
     </div>`;
@@ -78,5 +74,4 @@ function backToList() {
   document.getElementById('post-content').style.display = 'none';
 }
 
-// Jalankan
 loadPosts();
