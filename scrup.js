@@ -55,23 +55,24 @@ async function loadPost(filename) {
     const res = await fetch(rawUrl);
     let text = await res.text();
 
-    // Render HTML + jalankan script di dalamnya
+    // Hanya ambil bagian base64 (hapus Markdown di atas)
+    let base64Content = text;
+    if (text.includes('<div id="contents"></div>')) {
+      base64Content = text.substring(text.indexOf('<div id="contents"></div>'));
+    }
+
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = text;
-    
+    tempDiv.innerHTML = base64Content;
+
     document.getElementById('content').innerHTML = '';
     document.getElementById('content').appendChild(tempDiv);
 
-    // Eksekusi semua <script> yang ada
+    // Jalankan semua script di dalamnya
     const scripts = tempDiv.getElementsByTagName('script');
     for (let i = 0; i < scripts.length; i++) {
       const oldScript = scripts[i];
       const newScript = document.createElement('script');
-      if (oldScript.src) {
-        newScript.src = oldScript.src;
-      } else {
-        newScript.textContent = oldScript.textContent;
-      }
+      newScript.textContent = oldScript.textContent;
       document.getElementById('content').appendChild(newScript);
     }
 
