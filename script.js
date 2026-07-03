@@ -6,29 +6,45 @@ async function loadPosts() {
   container.innerHTML = '<p>Memuat daftar film...</p>';
 
   try {
-    const res = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/posts`);
-    const files = await res.json();
+    const listRes = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/posts`);
+    const files = await listRes.json();
     const mdFiles = files.filter(f => f.name.endsWith('.md'));
 
     let html = '';
+
     for (const file of mdFiles) {
-      const cleanTitle = file.name.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace('.md', '').replace(/-/g, ' ');
-      const displayTitle = cleanTitle.length > 25 ? cleanTitle.substring(0, 22) + '...' : cleanTitle;
+      const filename = file.name;
+      const cleanTitle = filename.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace('.md', '').replace(/-/g, ' ');
+
+      // Ambil isi file md untuk mencari gambar pertama
+      let imageUrl = 'https://via.placeholder.com/300x250/ff4f9a/fff?text=No+Image';
       
-      // Gunakan placeholder yang lebih reliable
+      try {
+        const rawRes = await fetch(`https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`);
+        const markdown = await rawRes.text();
+
+        // Cari gambar pertama di markdown
+        const imgMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+        if (imgMatch && imgMatch[1]) {
+          imageUrl = imgMatch[1];
+        }
+      } catch(e) {
+        console.log("Gagal ambil gambar untuk:", filename);
+      }
+
       html += `
-        <div class="card" onclick="loadPost('${file.name}')">
-          <img src="https://picsum.photos/300/250?random=${Math.random()}" 
-               alt="${cleanTitle}"
-               onerror="this.src='https://via.placeholder.com/300x250/ff4f9a/ffffff?text=No+Image'">
+        <div class="card" onclick="loadPost('${filename}')">
+          <img src="${imageUrl}" alt="${cleanTitle}" 
+               onerror="this.src='https://via.placeholder.com/300x250/ff4f9a/fff?text=No+Image'">
           <div class="info">
-            <div class="title">${displayTitle}</div>
+            <div class="title">${cleanTitle}</div>
           </div>
         </div>`;
     }
+
     container.innerHTML = html || '<p>Belum ada postingan.</p>';
   } catch(e) {
-    container.innerHTML = '<p>Gagal memuat daftar postingan.</p>';
+    container.innerHTML = '<p>Gagal memuat daftar. Cek koneksi atau repo.</p>';
   }
 }
 
@@ -36,20 +52,20 @@ async function loadPost(filename) {
   document.getElementById('posts-list').style.display = 'none';
   const contentArea = document.getElementById('post-content');
   contentArea.style.display = 'block';
+
   document.getElementById('content').innerHTML = `
-    <div style="text-align:center; padding:50px;">
-      <div style="width:50px;height:50px;border:4px solid #ddd;border-top:4px solid #ff4f9a;border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="width:50px;height:50px;border:4px solid #ddd;border-top:4px solid #ff4f9a;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;"></div>
       <p>Memuat konten...</p>
     </div>`;
 
   try {
     const rawUrl = `https://raw.githubusercontent.com/${USERNAME}/${REPO_NAME}/main/posts/${filename}`;
     const res = await fetch(rawUrl);
-    let text = await res.text();
-
+    const text = await res.text();
     document.getElementById('content').innerHTML = marked.parse(text);
   } catch(e) {
-    document.getElementById('content').innerHTML = '<p>Gagal memuat postingan. Coba refresh.</p>';
+    document.getElementById('content').innerHTML = '<p>Gagal memuat postingan.</p>';
   }
 }
 
@@ -58,5 +74,5 @@ function backToList() {
   document.getElementById('post-content').style.display = 'none';
 }
 
-// Jalankan saat halaman dimuat
+// Jalankan
 loadPosts();
