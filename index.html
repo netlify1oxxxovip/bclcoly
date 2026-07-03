@@ -6,21 +6,39 @@
   <title>Blog Saya</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="icon" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjmR8ZlqqV_XXMNwfnthp0NUJ6BCAMy1MQqTnn9ksExKZ-1kL892zf5O0U7bHLrsUeO1Idva-gVdy4E0JSHMLgCh1Cd83SvOQyubUAUqlXqsuR61VTOkFqZEkH3Dvfhu8ebiJsRcxOHIuJpyxF3TEF9kjieJ1PVwmxMiXcuJ_XsmnMz3JuVIEIWczHMfWQ/s1600/poop.png" type="image/png">
 </head>
 <body>
-  <header>
-    <h1>Blog Saya</h1>
-    <p>Selamat datang di blog pribadi saya</p>
-  </header>
 
-  <main>
-    <div id="posts-list"></div>
-    <div id="post-content" style="display: none;">
-      <button onclick="backToList()">← Kembali ke Daftar</button>
-      <div id="content"></div>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      🎬 <a href="/">Blog Saya</a>
     </div>
-  </main>
+  </div>
 
-  <script src="scripts.js"></script>
+  <!-- Menu -->
+  <div class="menu">
+    <a href="/" class="active">Home</a>
+    <a href="#">Movies</a>
+    <a href="#">Series</a>
+    <a href="#">Genre</a>
+  </div>
+
+  <div class="container">
+    <div id="posts-list" class="grid"></div>
+
+    <!-- Halaman Baca Postingan -->
+    <div id="post-content" style="display: none;">
+      <button onclick="backToList()" class="back-btn">← Kembali</button>
+      <div id="content" class="post-body"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    GUDANG GARAM JAYA
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
