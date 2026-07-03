@@ -7,7 +7,7 @@ async function loadPosts() {
 
   try {
     // GitHub API untuk list file di folder posts
-    const response = await fetch('https://api.github.com/repos/USERNAME/REPO-NAME/contents/posts');
+    const response = await fetch('https://github.com/netlify1oxxxovip/bclcoly/tree/main/posts');
     const files = await response.json();
 
     const mdFiles = files.filter(file => file.name.endsWith('.md'));
